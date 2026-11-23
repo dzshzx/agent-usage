@@ -2,6 +2,10 @@ github.com/dustin/go-humanize v1.1.0 h1:dbKTrvD0klcbBV/h4AWJdMuZogJACoMlvWIWZ5b2
 github.com/dustin/go-humanize v1.1.0/go.mod h1:hc1CvRkJMsgxqjmjMQF3QNRAZBwY8AXBAzKYoSX9sFI=
 github.com/dzshzx/claude-switch v0.0.3 h1:dW9bHfDPqn01oZyBgUMxx7F+sZxV4Hv/gbeAAdEa3EQ=
 github.com/dzshzx/claude-switch v0.0.3/go.mod h1:hXAr/wePFVg0OC+mzrHVSDKfhuOAqJvjSceaFjpGgjM=
+github.com/dzshzx/claude-switch v0.0.4-0.20261123112331-cc85a82ba9fd h1:ShM+sRtKD51aikPKeC3sS7VS8ab4KoBA2nU566cTAqc=
+github.com/dzshzx/claude-switch v0.0.4-0.20261123112331-cc85a82ba9fd/go.mod h1:hXAr/wePFVg0OC+mzrHVSDKfhuOAqJvjSceaFjpGgjM=
+github.com/dzshzx/claude-switch v0.0.4 h1:m1AF6Mj9MQ/OOaN+2+xU6v0qCV8k+fnCqeKPv65TzXw=
+github.com/dzshzx/claude-switch v0.0.4/go.mod h1:hXAr/wePFVg0OC+mzrHVSDKfhuOAqJvjSceaFjpGgjM=
 github.com/google/pprof v0.0.0-20261016150608-1facf8f91b50 h1:PlNWJRxu5APSV0pWqfIsZ0qt9OOGHSWfZQ4zvx+WgWs=
 github.com/google/pprof v0.0.0-20261016150608-1facf8f91b50/go.mod h1:yUo1AMMpsPIDFGuwDK8nLcf8+vvAd5l2O6JDZ6hpwrM=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=

@@ -16,7 +16,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/dzshzx/agent-usage/reading"
 	"github.com/dzshzx/claude-switch/account"
 )
 
@@ -24,7 +23,7 @@ import (
 func currentAccount() (name string, target bool) {
 	name = account.Name()
 	home, err := os.UserHomeDir()
-	return name, err == nil && reading.IsTarget(home, name)
+	return name, err == nil && account.IsTarget(home, name)
 }
 
 // sessionEntry 是登记文件里的一行；ts 是 epoch 秒（带小数）。

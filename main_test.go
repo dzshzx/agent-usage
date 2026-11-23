@@ -267,6 +267,7 @@ func TestParseArgsRejectsBadArguments(t *testing.T) {
 		{[]string{"hook", "session-start", "x"}, "unrecognized arguments: x"},
 		{[]string{"status", "--account", "claude"}, "argument --account: 只用于 record，且要是账号名: 'claude'"},
 		{[]string{"record", "--account", "@target"}, "argument --account: 只用于 record，且要是账号名: '@target'"},
+		{[]string{"record", "--account", "add"}, "argument --account: 只用于 record，且要是账号名: 'add'"},
 		{[]string{"--source", "Nope"}, "argument --source: 不是账号名: 'Nope'"},
 		{[]string{"--source", "@target"}, "argument --source: 不是账号名: '@target'"},
 		{[]string{"status", "--after", "x"}, "unrecognized arguments: --after"},

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/dzshzx/agent-usage/reading"
+	"github.com/dzshzx/claude-switch/account"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -21,13 +22,8 @@ const primaryAccount = reading.PrimaryAccount
 // 留在库里是为了 resume 复制件能查到原件、不被归到主号。名字带 @，不合账号名写法，不会和真的账号撞上。
 const targetSource = "@target"
 
-// accountNamePattern 是会话账号登记里认作账号的名字，与 claude-switch 的名字规则同一写法。
-var accountNamePattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,31}$`)
-
-// isAccountName：能当报表来源的账号名（targetSource 不是）。
-func isAccountName(name string) bool {
-	return accountNamePattern.MatchString(name)
-}
+// isAccountName：能当报表来源的账号名，即 claude-switch 的名字规则（account.Valid；targetSource 不合）。
+func isAccountName(name string) bool { return account.Valid(name) }
 
 var (
 	primary   = newClaudeSource()
@@ -370,12 +366,12 @@ func (s *claudeSource) loadAccountLine(line []byte, out map[string][]accountRow)
 	if err != nil {
 		return err
 	}
-	account, ok := rec["account"]
+	raw, ok := rec["account"]
 	if !ok {
 		return lineErr("缺少字段 account")
 	}
-	name, isStr := account.(string)
-	if !isStr || !accountNamePattern.MatchString(name) {
+	name, isStr := raw.(string)
+	if !isStr || !account.Valid(name) {
 		return nil
 	}
 	if rec["target"] == true {

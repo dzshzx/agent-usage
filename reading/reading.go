@@ -29,14 +29,13 @@ import (
 const (
 	// PrimaryAccount 是主号：没装 claude-switch、或它没有切换记录时的账号名。
 	PrimaryAccount = account.Default
-	// resetsJitter：同一个窗口的重置时刻在各次响应之间会差一两秒。
-	resetsJitter = 120
+	// Window 是读数记的窗口：7 天限额。
+	Window = "seven_day"
+	// ResetsJitter 是同一个窗口的重置时刻在各次响应之间的误差（秒），差这么多以内算同一个周期。
+	ResetsJitter = 120
 	// DropMin：同一窗口里读数比上一条低这么多个百分点才算回落（官方中途清零、重算档位）；
 	// 几个对话的响应乱序到达只会差一个点。
 	DropMin = 3.0
-	// switchTargetsDir 是 claude-switch 放非账号目标设置文件的目录（相对 HOME），每个目标一份 <名字>.json，
-	// 见 claude-switch 的 README「Settings targets」。
-	switchTargetsDir = ".config/claude-switch/targets"
 )
 
 // ErrNotReading 是交来的 JSON 不是认得的额度写法。
@@ -73,79 +72,52 @@ func LogPath(dir, name string) string {
 	return filepath.Join(dir, "rate-limits."+name+".jsonl")
 }
 
-// Account 返回 home 下 claude-switch 的当前名字（切换记录，没有时是 PrimaryAccount），以及它是不是非账号目标。
-// 用默认配置目录（不设 CLAUDE_CONFIG_DIR）的 Claude Code 进程都属于这个名字。
-func Account(home string) (name string, target bool) {
-	name = account.Current(home)
-	return name, IsTarget(home, name)
-}
-
-// IsTarget 报告 name 是不是 home 下 claude-switch 的非账号目标。
-func IsTarget(home, name string) bool {
-	_, err := os.Stat(filepath.Join(home, switchTargetsDir, name+".json"))
-	return err == nil
+// payload 一次装下认得的写法；rate_limit_info 包着的那层再解一次。
+type payload struct {
+	Info    json.RawMessage `json:"rate_limit_info"`
+	Windows map[string]*struct {
+		Utilization *float64 `json:"utilization"`
+		ResetsAt    *float64 `json:"resetsAt"`
+	} `json:"unifiedWindows"`
+	Available *bool `json:"rate_limits_available"`
+	Limits    *struct {
+		SevenDay *struct {
+			Utilization *float64 `json:"utilization"`
+			ResetsAt    string   `json:"resets_at"`
+		} `json:"seven_day"`
+	} `json:"rate_limits"`
 }
 
 // Parse 从额度 JSON 里取 7 天窗口读数；认得写法但没带 7 天窗口时 ok 为 false，不认得时是 ErrNotReading。
 func Parse(data []byte) (r Reading, ok bool, err error) {
-	var top map[string]json.RawMessage
-	if json.Unmarshal(data, &top) != nil || top == nil {
+	var p payload
+	if json.Unmarshal(data, &p) != nil {
 		return r, false, ErrNotReading
 	}
-	if raw, has := top["rate_limit_info"]; has {
-		data = raw
-		top = nil
-		if json.Unmarshal(data, &top) != nil || top == nil {
+	if p.Info != nil {
+		inner := p.Info
+		if p = (payload{}); json.Unmarshal(inner, &p) != nil {
 			return r, false, ErrNotReading
 		}
 	}
 	switch {
-	case top["unifiedWindows"] != nil:
-		return parseInfo(data)
-	case top["rate_limits_available"] != nil:
-		return parseUsage(data)
+	case p.Windows != nil:
+		w := p.Windows[Window]
+		if w == nil || w.Utilization == nil || w.ResetsAt == nil {
+			return r, false, nil
+		}
+		return Reading{Used: roundPercent(*w.Utilization * 100), ResetsAt: int64(*w.ResetsAt)}, true, nil
+	case p.Available != nil:
+		if !*p.Available || p.Limits == nil || p.Limits.SevenDay == nil || p.Limits.SevenDay.Utilization == nil {
+			return r, false, nil
+		}
+		at, err := time.Parse(time.RFC3339Nano, p.Limits.SevenDay.ResetsAt)
+		if err != nil {
+			return r, false, nil
+		}
+		return Reading{Used: roundPercent(*p.Limits.SevenDay.Utilization), ResetsAt: at.Unix()}, true, nil
 	}
 	return r, false, ErrNotReading
-}
-
-func parseInfo(data []byte) (r Reading, ok bool, err error) {
-	var info struct {
-		Windows map[string]*struct {
-			Utilization *float64 `json:"utilization"`
-			ResetsAt    *float64 `json:"resetsAt"`
-		} `json:"unifiedWindows"`
-	}
-	if json.Unmarshal(data, &info) != nil {
-		return r, false, ErrNotReading
-	}
-	w := info.Windows["seven_day"]
-	if w == nil || w.Utilization == nil || w.ResetsAt == nil {
-		return r, false, nil
-	}
-	return Reading{Used: roundPercent(*w.Utilization * 100), ResetsAt: int64(*w.ResetsAt)}, true, nil
-}
-
-func parseUsage(data []byte) (r Reading, ok bool, err error) {
-	var u struct {
-		Available bool `json:"rate_limits_available"`
-		Limits    *struct {
-			SevenDay *struct {
-				Utilization *float64 `json:"utilization"`
-				ResetsAt    string   `json:"resets_at"`
-			} `json:"seven_day"`
-		} `json:"rate_limits"`
-	}
-	if json.Unmarshal(data, &u) != nil {
-		return r, false, ErrNotReading
-	}
-	if !u.Available || u.Limits == nil || u.Limits.SevenDay == nil || u.Limits.SevenDay.Utilization == nil {
-		return r, false, nil
-	}
-	at, err := time.Parse(time.RFC3339Nano, u.Limits.SevenDay.ResetsAt)
-	if err != nil {
-		return r, false, nil
-	}
-	return Reading{Used: roundPercent(*u.Limits.SevenDay.Utilization), ResetsAt: at.Unix()}, true, nil
 }
 
 // roundPercent 去掉比例换算带来的浮点尾巴（0.9×100 = 90.00000000000001）。
@@ -155,11 +127,11 @@ func roundPercent(p float64) float64 { return math.Round(p*100) / 100 }
 // 记的是：更晚的窗口；同一窗口里更高的百分比；同一窗口里比上一条低 DropMin 个点以上（带 dropped_from）。
 // 更早的窗口迟到了、或同一窗口里没变或只小幅回落时不记。
 func Next(r Reading, now int64, last Line) (line Line, ok bool) {
-	if r.ResetsAt < last.ResetsAt-resetsJitter {
+	if r.ResetsAt < last.ResetsAt-ResetsJitter {
 		return line, false
 	}
-	line = Line{TS: now, Window: "seven_day", Used: r.Used, ResetsAt: r.ResetsAt}
-	if r.ResetsAt-last.ResetsAt > resetsJitter {
+	line = Line{TS: now, Window: Window, Used: r.Used, ResetsAt: r.ResetsAt}
+	if r.ResetsAt-last.ResetsAt > ResetsJitter {
 		return line, true
 	}
 	line.ResetsAt = last.ResetsAt
@@ -172,6 +144,11 @@ func Next(r Reading, now int64, last Line) (line Line, ok bool) {
 		return line, true
 	}
 	return line, false
+}
+
+// statePath 是读数文件旁边记上一条读数的 .state。
+func statePath(dir, name string) string {
+	return strings.TrimSuffix(LogPath(dir, name), ".jsonl") + ".state"
 }
 
 // Append 按 Next 把读数追加进 dir 下账号 name 的读数文件，并更新旁边的 .state；记了一行时 recorded 为真。
@@ -188,10 +165,9 @@ func Append(dir, name string, r Reading, now time.Time) (recorded bool, err erro
 	if err := syscall.Flock(int(lock.Fd()), syscall.LOCK_EX); err != nil {
 		return false, err
 	}
-	logPath := LogPath(dir, name)
-	statePath := strings.TrimSuffix(logPath, ".jsonl") + ".state"
+	state := statePath(dir, name)
 	var last Line
-	if data, err := os.ReadFile(statePath); err == nil {
+	if data, err := os.ReadFile(state); err == nil {
 		if json.Unmarshal(data, &last) != nil {
 			last = Line{} // 读不懂的 .state 当作没有上一条：多记一行无害
 		}
@@ -206,7 +182,7 @@ func Append(dir, name string, r Reading, now time.Time) (recorded bool, err erro
 	if err != nil {
 		return false, err
 	}
-	f, err := os.OpenFile(logPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0o644)
+	f, err := os.OpenFile(LogPath(dir, name), os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0o644)
 	if err != nil {
 		return false, err
 	}
@@ -217,18 +193,18 @@ func Append(dir, name string, r Reading, now time.Time) (recorded bool, err erro
 	if err != nil {
 		return false, err
 	}
-	return true, writeFileAtomic(statePath, encoded)
+	return true, writeFileAtomic(state, encoded)
 }
 
 // Record 是给别的程序用的一步：从额度 JSON 取读数，记到 home 下 claude-switch 当前的账号名下（数据目录见 Dir）。
-// 没带 7 天窗口、读数没变、当前是非账号目标时什么都不记；不认得的 JSON 返回 ErrNotReading。
+// 没带 7 天窗口、读数没变、当前是 claude-switch 的非账号目标时什么都不记；不认得的 JSON 返回 ErrNotReading。
 func Record(home string, data []byte, now time.Time) (recorded bool, err error) {
 	r, ok, err := Parse(data)
 	if err != nil || !ok {
 		return false, err
 	}
-	name, target := Account(home)
-	if target {
+	name := account.Current(home)
+	if account.IsTarget(home, name) {
 		return false, nil
 	}
 	return Append(Dir(home), name, r, now)

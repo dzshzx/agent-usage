@@ -3,7 +3,7 @@ module github.com/dzshzx/agent-usage
 go 1.27.4
 
 require (
-	github.com/dzshzx/claude-switch v0.0.3
+	github.com/dzshzx/claude-switch v0.0.4
 	github.com/klauspost/compress v1.20.4
 	modernc.org/sqlite v1.62.0
 )

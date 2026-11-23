@@ -9,6 +9,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/dzshzx/claude-switch/account"
 )
 
 // rate_limit_info 与 get_usage 应答的写法取自 Claude Code 2.1.328 的 stream-json 输出（Zeta 的 helper/accounts 实测）。
@@ -50,7 +52,7 @@ func TestParseReadingWithoutWeekWindowRecordsNothing(t *testing.T) {
 }
 
 func TestParseReadingRejectsOtherJSON(t *testing.T) {
-	for _, in := range []string{`{"type":"assistant"}`, `[1]`, `not json`, `null`, `{"rate_limit_info":3}`} {
+	for _, in := range []string{`{"type":"assistant"}`, `[1]`, `not json`, `null`, `{"rate_limit_info":3}`, `{"unifiedWindows":null}`} {
 		if _, _, err := Parse([]byte(in)); !errors.Is(err, ErrNotReading) {
 			t.Errorf("%s: err = %v，期望 ErrNotReading", in, err)
 		}
@@ -92,8 +94,6 @@ func TestNextReadingKeepsOnlyChanges(t *testing.T) {
 		}
 	}
 }
-
-// recordHome 把 HOME 指到临时目录（claude-switch 的切换记录与非账号目标都按 HOME 找），并清掉 CLAUDE_CONFIG_DIR。
 
 func readLines(t *testing.T, path string) []string {
 	t.Helper()
@@ -154,12 +154,12 @@ func TestRecordFollowsTheSwitchRecordUnderHome(t *testing.T) {
 	if ok, err := Record(home, []byte(sampleInfo), now); !ok || err != nil {
 		t.Fatalf("没有切换记录：Record = %v, %v，期望记到主号", ok, err)
 	}
-	writeFile(t, filepath.Join(home, ".local/state/claude-switch/current"), "claude-b\n")
+	writeFile(t, filepath.Join(home, account.StateDir, "current"), "claude-b\n")
 	if ok, err := Record(home, []byte(sampleUsage), now); !ok || err != nil {
 		t.Fatalf("claude-b：Record = %v, %v", ok, err)
 	}
-	writeFile(t, filepath.Join(home, ".local/state/claude-switch/current"), "gateway\n")
-	writeFile(t, filepath.Join(home, switchTargetsDir, "gateway.json"), "{}")
+	writeFile(t, filepath.Join(home, account.StateDir, "current"), "gateway\n")
+	writeFile(t, filepath.Join(home, account.TargetsDir, "gateway.json"), "{}")
 	if ok, err := Record(home, []byte(sampleInfo), now); ok || err != nil {
 		t.Fatalf("非账号目标：Record = %v, %v，期望不记", ok, err)
 	}

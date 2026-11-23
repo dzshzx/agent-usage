@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/dzshzx/agent-usage/reading"
 	"io"
 	"io/fs"
 	"math"
@@ -22,11 +23,11 @@ const (
 	defaultMaxPriceAgeDays = 7.0
 	// 抓取失败，或遇到价格表里没有的新模型时，两次对齐尝试之间的最短间隔
 	priceRetrySeconds = 3600
-	// 同一周期的 resets_at 在不同响应里会有 1–2 秒抖动
-	resetsJitterSeconds = 120
+	// 同一周期的 resets_at 在不同响应里会有 1–2 秒抖动（与写读数的 reading 包同一个容差）
+	resetsJitterSeconds = reading.ResetsJitter
 	// 周期以 7 天窗口为单位；请求与读数都挂在这个限额名上
 	weekMinutes = 10080
-	weekLimitID = "seven_day"
+	weekLimitID = reading.Window
 	// 近期参考值：取最近若干个用得够多的周期的估算中位数
 	referenceMinUsedPercent = 30
 	referenceCycles         = 8

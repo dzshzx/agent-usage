@@ -323,13 +323,13 @@ func appendJSONString(b []byte, s string) []byte {
 func (x *rowWriter) events(db *DB, o *string, origin string, from int64) error {
 	const q = "SELECT source, ukey, ts, file, model, tier, input_tokens, cached_input_tokens, cache_write_5m_tokens, " +
 		"cache_write_1h_tokens, output_tokens, reasoning_tokens, agent, effort, seq FROM events " +
-		"WHERE origin IS ? AND seq > ? AND limit_id = ? AND source != ? ORDER BY seq"
+		"WHERE origin IS ? AND seq > ? AND limit_id = ? ORDER BY seq"
 	originRef, err := x.ref(&origin)
 	if err != nil {
 		return err
 	}
 	refs := make([]int, 6)
-	return db.Each(q, []any{nullableStr(o), from, weekLimitID, targetSource}, func(scan func(...any) error) error {
+	return db.Each(q, []any{nullableStr(o), from, weekLimitID}, func(scan func(...any) error) error {
 		var ev Event
 		if err := scan(&ev.Source, &ev.Ukey, &ev.Ts, &ev.File, &ev.Model, &ev.Tier, &ev.InputTokens, &ev.CachedInputTokens,
 			&ev.CacheWrite5mTokens, &ev.CacheWrite1hTokens, &ev.OutputTokens, &ev.ReasoningTokens, &ev.Agent, &ev.Effort, &ev.Seq); err != nil {

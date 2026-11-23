@@ -11,13 +11,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dzshzx/claude-switch/account"
+
 	"github.com/dzshzx/agent-usage/reading"
 )
 
-// rate_limit_info 与 get_usage 应答的写法取自 Claude Code 2.1.328 的 stream-json 输出（Zeta 的 helper/accounts 实测）。
+// 额度写法的覆盖面在 reading 包的测试里；这里只要两种写法各一份最小的。
 const (
-	sampleInfo  = `{"status":"allowed","resetsAt":1795057510,"rateLimitType":"five_hour","isUsingOverage":false,"unifiedWindows":{"five_hour":{"utilization":0.25,"resetsAt":1795057510,"status":"allowed"},"seven_day":{"utilization":0.9,"resetsAt":1795313110,"status":"allowed"}}}`
-	sampleUsage = `{"rate_limits_available":true,"subscription_type":"max","rate_limits":{"five_hour":{"utilization":25,"resets_at":"2026-11-19T03:05:10.000Z"},"seven_day":{"utilization":40,"resets_at":"2026-11-22T02:05:10.000Z"}}}`
+	weekInfo  = `{"unifiedWindows":{"seven_day":{"utilization":0.9,"resetsAt":1795313110}}}`
+	weekUsage = `{"rate_limits_available":true,"rate_limits":{"seven_day":{"utilization":40,"resets_at":"2026-11-22T02:05:10Z"}}}`
 )
 
 // recordHome 把 HOME 指到临时目录（claude-switch 的切换记录与非账号目标都按 HOME 找），并清掉 CLAUDE_CONFIG_DIR。
@@ -27,10 +29,10 @@ func recordHome(t *testing.T, current string, targets ...string) string {
 	t.Setenv("HOME", home)
 	t.Setenv("CLAUDE_CONFIG_DIR", "")
 	if current != "" {
-		writeFile(t, filepath.Join(home, ".local/state/claude-switch/current"), current+"\n")
+		writeFile(t, filepath.Join(home, account.StateDir, "current"), current+"\n")
 	}
 	for _, name := range targets {
-		writeFile(t, filepath.Join(home, ".config/claude-switch/targets", name+".json"), "{}")
+		writeFile(t, filepath.Join(home, account.TargetsDir, name+".json"), "{}")
 	}
 	return home
 }
@@ -51,7 +53,7 @@ func TestRecordWritesToTheCurrentAccount(t *testing.T) {
 	ctx := newTestContext(t)
 	recordHome(t, "claude-b")
 	now := time.Unix(1795300000, 0)
-	for _, in := range []string{sampleInfo, sampleInfo, strings.Replace(sampleInfo, `"utilization":0.9`, `"utilization":0.91`, 1)} {
+	for _, in := range []string{weekInfo, weekInfo, strings.Replace(weekInfo, `"utilization":0.9`, `"utilization":0.91`, 1)} {
 		if err := runRecord(ctx.Args, strings.NewReader(in), now); err != nil {
 			t.Fatal(err)
 		}
@@ -73,7 +75,7 @@ func TestRecordAccountFlagOverridesTheSwitchRecord(t *testing.T) {
 	ctx := newTestContext(t)
 	recordHome(t, "claude-b")
 	ctx.Args.Account = "claude"
-	if err := runRecord(ctx.Args, strings.NewReader(sampleUsage), time.Unix(1795300000, 0)); err != nil {
+	if err := runRecord(ctx.Args, strings.NewReader(weekUsage), time.Unix(1795300000, 0)); err != nil {
 		t.Fatal(err)
 	}
 	if n := len(readLines(t, ctx.Args.rateLimitLog("claude"))); n != 1 {
@@ -84,7 +86,7 @@ func TestRecordAccountFlagOverridesTheSwitchRecord(t *testing.T) {
 func TestRecordSkipsSettingsTargets(t *testing.T) {
 	ctx := newTestContext(t)
 	recordHome(t, "gateway", "gateway")
-	if err := runRecord(ctx.Args, strings.NewReader(sampleInfo), time.Unix(1795300000, 0)); err != nil {
+	if err := runRecord(ctx.Args, strings.NewReader(weekInfo), time.Unix(1795300000, 0)); err != nil {
 		t.Fatal(err)
 	}
 	matches, _ := filepath.Glob(filepath.Join(ctx.Args.DataDir, "rate-limits*.jsonl"))
