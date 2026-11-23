@@ -1,0 +1,15 @@
+# agent-usage（./...，linux/amd64、CGO_ENABLED=0）链接的第三方 Go 模块，一行一个、按字典序。
+# 由 scripts/check.sh 核对，多一个少一个都报错。新增模块先在这里用注释写明用途与来源。
+# claude-switch 的 account 包：按 claude-switch 的切换记录认当前账号。
+# klauspost/compress：sync、export 的 zstd 压缩。
+# modernc.org/sqlite 与其余各行：纯 Go 的 SQLite（不需要 cgo），其余是它的依赖。
+github.com/dustin/go-humanize
+github.com/dzshzx/claude-switch
+github.com/google/uuid
+github.com/klauspost/compress
+github.com/remyoudompheng/bigfft
+golang.org/x/sys
+modernc.org/libc
+modernc.org/mathutil
+modernc.org/memory
+modernc.org/sqlite

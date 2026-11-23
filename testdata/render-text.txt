@@ -1,0 +1,35 @@
+━━ claude (USD)
+  seven_day  2026-10-17T08:00 → 2026-10-24T08:00  进行中
+  已用 42.5%  折算 $123.46  估算总额度 $290.50 (delta, 9 个读数)
+    claude-opus-5-very-long-mo fast         12 次  入    1.2M  缓存  987.7K  出    4.3K  $    100.00  按 Claude Opus 5 估价  2 次未计价
+    ?                          standard     12 次  入    1.2M  缓存  987.7K  出    4.3K  $     23.46
+    按角色  main $80.00 (65%) · ? $43.46 (35%)
+    main         claude-opus-5        high    standard    3 会话     7 次  入    2.5B  缓存    1.5K  出     999  $     80.00
+    ?            ?                    -       standard    3 会话     7 次  入    2.5B  缓存    1.5K  出     999  $     43.46
+    按会话
+    会话甲乙丙丁戊己庚辛壬癸-0123456789a reviewer 10-18T09:05 → 10:45   2 子代理    15 次  入   12.3K  缓存       0  出     678  $   1234.57 (26%)  ≈7.5% 额度
+    short                    10 →    0 子代理     1 次  入       0  缓存       0  出       0  $      0.00 (-)
+  seven_day  2026-10-17T08:00 → 2026-10-24T08:00  推断周期
+  无读数  折算 $0.00
+    claude-opus-5-very-long-mo fast         12 次  入    1.2M  缓存  987.7K  出    4.3K  $    100.00  按 Claude Opus 5 估价  2 次未计价
+    ?                          standard     12 次  入    1.2M  缓存  987.7K  出    4.3K  $     23.46
+    按角色  reviewer $0.00
+    reviewer     claude-sonnet-5      low     standard    3 会话     7 次  入    2.5B  缓存    1.5K  出     999  $      0.00
+  seven_day  2026-10-17T08:00 → 2026-10-24T08:00  已结束
+  已用 42.5%  折算 $123.46  估算总额度 $290.50 (delta, 9 个读数)
+    claude-opus-5-very-long-mo fast         12 次  入    1.2M  缓存  987.7K  出    4.3K  $    100.00  按 Claude Opus 5 估价  2 次未计价
+    ?                          standard     12 次  入    1.2M  缓存  987.7K  出    4.3K  $     23.46
+  近期参考总额度 $1301.25（最近 4 个已用 ≥30% 周期的中位数）
+  2026-10-22  $     12.50      30 次  入     999  出    1.0K  ████████
+  2026-10-23  $     50.00      70 次  入    5.0M  出       2  ██████████████████████████████
+  claude-opus-4-1               standard 入 15      缓存 1.5     出 75      
+  claude-haiku                  fast     入 0.8     缓存 -       出 4       
+  claude-sonnet-4-5             standard 入 3       缓存 3       出 15      
+  claude-haiku-5-5              standard 入 0.1     缓存 0.01    出 0.5     
+    输入超过 100000 tokens               入 0.5     缓存 0.05    出 2.5     
+
+━━ claude-b (USD)
+  2026-10-22  $      0.00      30 次  入     999  出    1.0K  
+
+warning: claude: 示例警告
+warning: claude-b: 第二条

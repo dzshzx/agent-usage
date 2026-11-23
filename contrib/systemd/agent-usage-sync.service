@@ -1,0 +1,13 @@
+# agent-usage 与配置里的对端（~/.config/agent-usage/config.json 的 peers）互相同步 Claude Code 各账号的用量：
+# 先拉对端、再推本机，只传上次之后的增量。对端连不上只记警告、单元照常成功；对端的 agent-usage 报错时单元失败。
+# 说明见 README「多台机器同步」。程序装在别处时改 ExecStart。
+[Unit]
+Description=Sync Claude Code usage with agent-usage peers
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/go/bin/agent-usage sync --text
+# 增量同步十几秒；对端删库重建后的整份推送约 1 分钟，时限只是兜底
+TimeoutStartSec=15min
