@@ -8,6 +8,6 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=%h/go/bin/agent-usage sync --text
+ExecStart=%h/.local/bin/agent-usage sync --text
 # 增量同步十几秒；对端删库重建后的整份推送约 1 分钟，时限只是兜底
 TimeoutStartSec=15min

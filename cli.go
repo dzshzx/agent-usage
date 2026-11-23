@@ -13,9 +13,9 @@ import (
 	"time"
 )
 
-var commands = []string{"status", "history", "daily", "prices", "segments", "time", "sync", "export", "import", "peer", "record", "hook"}
+var commands = []string{"status", "history", "daily", "prices", "segments", "time", "sync", "export", "import", "peer", "record", "hook", "version"}
 
-const usageLine = "usage: agent-usage [status|history|daily|prices|segments|time|sync [主机…]|export|import|record|hook session-start] [选项]\n"
+const usageLine = "usage: agent-usage [status|history|daily|prices|segments|time|sync [主机…]|export|import|record|hook session-start|version] [选项]\n"
 
 func helpText() string {
 	return usageLine + `
@@ -36,6 +36,7 @@ Claude Code 各账号（主号 claude 与 claude-switch 管理的其他号）在
   record                从 stdin 读一份 Claude Code 交出的额度（stream-json 的 rate_limit_event、它的
                         rate_limit_info，或 get_usage 的应答），记下 7 天窗口的已用百分比
   hook session-start    Claude Code 的 SessionStart hook：登记本会话属于哪个账号，不输出
+  version               打印版本
 
 选项：
   -h, --help            显示本帮助并退出

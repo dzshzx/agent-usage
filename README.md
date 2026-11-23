@@ -15,13 +15,17 @@
 
 ## 安装
 
-要 Go（版本见 `go.mod`）：
+从 [Release](https://github.com/dzshzx/agent-usage/releases/latest) 下载 Linux 程序（amd64、arm64，静态链接），按 `SHA256SUMS` 核对：
 
 ```sh
-go install github.com/dzshzx/agent-usage@latest
+arch=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+base=https://github.com/dzshzx/agent-usage/releases/latest/download
+curl -fsSLO "$base/agent-usage-linux-$arch" -O "$base/SHA256SUMS"
+sha256sum --ignore-missing -c SHA256SUMS
+install -m 755 "agent-usage-linux-$arch" ~/.local/bin/agent-usage
 ```
 
-程序装在 `$(go env GOPATH)/bin`。SQLite 是纯 Go 实现，不需要 cgo，可以直接交叉编译给别的机器（比如 `GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build`）。
+或者用 Go（版本见 `go.mod`）装到 `$(go env GOPATH)/bin`：`go install github.com/dzshzx/agent-usage@latest`。`agent-usage version` 打印装的版本。SQLite 是纯 Go 实现，不需要 cgo，可以直接交叉编译给别的机器（比如 `GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build`）。
 
 ## 接入
 
@@ -73,7 +77,7 @@ cp contrib/systemd/agent-usage-sync.{service,timer} ~/.config/systemd/user/
 systemctl --user daemon-reload && systemctl --user enable --now agent-usage-sync.timer
 ```
 
-单元里的程序路径是 `%h/go/bin/agent-usage`，装在别处时改 `ExecStart`。
+单元里的程序路径是 `%h/.local/bin/agent-usage`，装在别处时改 `ExecStart`。
 
 ## 用法
 
@@ -224,7 +228,7 @@ agent-usage 不修改 Claude Code，不调用 Anthropic 的接口，只读 Claud
 
 agent-usage reports, per claude.ai account, the token usage of [Claude Code](https://docs.anthropic.com/en/docs/claude-code) in each 7-day limit cycle, prices it at Anthropic's public API rates (USD), and estimates the cycle's total quota from the used percentage. It is an unofficial tool, not affiliated with or endorsed by Anthropic.
 
-**Install.** `go install github.com/dzshzx/agent-usage@latest` (pure-Go SQLite, no cgo).
+**Install.** Download `agent-usage-linux-amd64` or `-arm64` from the latest Release and check it against `SHA256SUMS`, or `go install github.com/dzshzx/agent-usage@latest` (pure-Go SQLite, no cgo).
 
 **Inputs.** Usage comes from Claude Code's session logs (`~/.claude/projects/**/*.jsonl`). Claude Code does not write its quota to disk; programs that run it pipe each `rate_limit_event` line of `--output-format stream-json` output (or the `get_usage` control response) to `agent-usage record`, which appends a reading for the current account when it changes. When several accounts share one machine via [claude-switch](https://github.com/dzshzx/claude-switch), add `agent-usage hook session-start` as a SessionStart hook so each session is attributed to its account; sessions on a claude-switch settings target are stored but never reported.
 

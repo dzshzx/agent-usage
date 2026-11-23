@@ -261,7 +261,7 @@ func TestParseArgsRejectsBadArguments(t *testing.T) {
 		msg  string
 	}{
 		{[]string{"status", "daily"}, "unrecognized arguments: daily"},
-		{[]string{"bogus"}, "argument command: invalid choice: 'bogus' (choose from 'status', 'history', 'daily', 'prices', 'segments', 'time', 'sync', 'export', 'import', 'peer', 'record', 'hook')"},
+		{[]string{"bogus"}, "argument command: invalid choice: 'bogus' (choose from 'status', 'history', 'daily', 'prices', 'segments', 'time', 'sync', 'export', 'import', 'peer', 'record', 'hook', 'version')"},
 		{[]string{"hook"}, "argument hook: 要给出事件名（session-start）"},
 		{[]string{"hook", "stop"}, "argument hook: invalid choice: 'stop' (choose from 'session-start')"},
 		{[]string{"hook", "session-start", "x"}, "unrecognized arguments: x"},
@@ -340,5 +340,18 @@ func TestSourcesListedByName(t *testing.T) {
 	text := stdout.String()
 	if i, j := strings.Index(text, "━━ claude (USD)"), strings.Index(text, "━━ claude-b (USD)"); i < 0 || j < 0 || i > j {
 		t.Errorf("--text 的来源顺序不对:\n%s", text)
+	}
+}
+
+func TestVersionPrintsTheInjectedVersion(t *testing.T) {
+	old := version
+	t.Cleanup(func() { version = old })
+	version = "v1.2.3"
+	var stdout, stderr bytes.Buffer
+	if code := run([]string{"version"}, &stdout, &stderr); code != 0 || stdout.String() != "agent-usage v1.2.3\n" {
+		t.Errorf("退出码 %d、stdout %q，期望 0 与 %q", code, stdout.String(), "agent-usage v1.2.3\n")
+	}
+	if got := buildVersion(""); got != "dev" {
+		t.Errorf("没注入、也不是按版本装的：buildVersion = %q，期望 dev", got)
 	}
 }

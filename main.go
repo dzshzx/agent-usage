@@ -252,6 +252,8 @@ func run(argv []string, stdout, stderr io.Writer) int {
 		err = runRecord(args, os.Stdin, time.Now())
 	case "hook":
 		runHook(args, os.Stdin, stderr, time.Now())
+	case "version":
+		fmt.Fprintln(stdout, "agent-usage", buildVersion(version))
 	case "sync":
 		var r *syncResult
 		if r, err = runSync(args); err == nil {
