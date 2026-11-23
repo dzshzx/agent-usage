@@ -45,7 +45,7 @@ claude -p --output-format stream-json --verbose "…" | jq -c 'select(.type == "
 
 读数记在当前账号名下：按 claude-switch 的切换记录（没装 claude-switch 时就是 `claude`），`--account` 可以指定。当前是 claude-switch 的非账号目标（不登录 claude.ai，比如经 API 网关）时没有额度，什么都不记。只在读数有变化时追加一行：重置时间更晚（新周期），或同一周期里百分比更高；同一周期里比上一条低 3 个点以上时记一条回落（官方中途清零、重算档位），估算在那里切段。几个程序同时调用也不会写乱。stdin 不是这几种写法时退出码 1；认得但没带 7 天窗口时什么都不记，退出码 0。
 
-[Zeta](https://github.com/dzshzx/Zeta) 的主机端会自动调用它。
+Go 程序可以不起进程，直接调用 `github.com/dzshzx/agent-usage/reading` 包：`reading.Record(home, data, time.Now())` 与 `agent-usage record` 做的事相同（账号按 `home` 下 claude-switch 的切换记录，数据目录同下文「数据」）。[Zeta](https://github.com/dzshzx/Zeta) 的主机端就这样记下它收到的每份额度。
 
 ### 账号登记：`agent-usage hook session-start`
 

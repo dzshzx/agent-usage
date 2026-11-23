@@ -16,22 +16,15 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/dzshzx/agent-usage/reading"
 	"github.com/dzshzx/claude-switch/account"
 )
-
-// switchTargetsDir 是 claude-switch 放非账号目标设置文件的目录（相对 HOME），每个目标一份 <名字>.json，
-// 见 claude-switch 的 README「Settings targets」。
-const switchTargetsDir = ".config/claude-switch/targets"
 
 // currentAccount 返回本进程所属的名字（claude-switch 的 account.Name）与它是不是非账号目标。
 func currentAccount() (name string, target bool) {
 	name = account.Name()
 	home, err := os.UserHomeDir()
-	if err != nil {
-		return name, false
-	}
-	_, err = os.Stat(filepath.Join(home, switchTargetsDir, name+".json"))
-	return name, err == nil
+	return name, err == nil && reading.IsTarget(home, name)
 }
 
 // sessionEntry 是登记文件里的一行；ts 是 epoch 秒（带小数）。

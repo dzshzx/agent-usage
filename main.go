@@ -8,6 +8,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dzshzx/agent-usage/reading"
 	"io"
 	"os"
 	"path/filepath"
@@ -42,14 +43,8 @@ type Args struct {
 	HookEvent      string    // hook 的事件名（session-start）
 }
 
-// rateLimitLog 是账号的 7 天窗口读数文件：主号 rate-limits.jsonl，其余 rate-limits.<账号>.jsonl。
-func (a *Args) rateLimitLog(account string) string {
-	name := "rate-limits.jsonl"
-	if account != primaryAccount {
-		name = "rate-limits." + account + ".jsonl"
-	}
-	return filepath.Join(a.DataDir, name)
-}
+// rateLimitLog 是账号的 7 天窗口读数文件（reading.LogPath）。
+func (a *Args) rateLimitLog(account string) string { return reading.LogPath(a.DataDir, account) }
 
 // sessionAccountLog 是会话账号登记文件。
 func (a *Args) sessionAccountLog() string {

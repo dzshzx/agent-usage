@@ -4,6 +4,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/dzshzx/agent-usage/reading"
 	"io"
 	"os"
 	"path/filepath"
@@ -73,7 +74,7 @@ func defaultArgs() *Args {
 		MaxPriceAge:    defaultMaxPriceAgeDays,
 		ClaudeHome:     envPath("CLAUDE_CONFIG_DIR", filepath.Join(home, ".claude")),
 		SwitchStateDir: envPath("CLAUDE_SWITCH_STATE_DIR", filepath.Join(home, ".local/state/claude-switch")),
-		DataDir:        envPath("AGENT_USAGE_DATA_DIR", filepath.Join(home, ".local/share/agent-usage")),
+		DataDir:        reading.Dir(home),
 		RemoteCommand:  envPath("AGENT_USAGE_REMOTE_COMMAND", "~/.local/bin/agent-usage"),
 		ConfigPath:     envPath("AGENT_USAGE_CONFIG", filepath.Join(home, ".config/agent-usage/config.json")),
 	}

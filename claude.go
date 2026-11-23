@@ -4,6 +4,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"github.com/dzshzx/agent-usage/reading"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -13,7 +14,7 @@ import (
 )
 
 // primaryAccount 是主号：会话没有登记时归它，会话日志由它扫描、价格表由它抓取，其余账号共用。
-const primaryAccount = "claude"
+const primaryAccount = reading.PrimaryAccount
 
 // targetSource 收 claude-switch 非账号目标（不登录 claude.ai、改用一份设置文件，比如经 API 网关用 API Key）的会话，
 // 即登记里带 "target": true 的那几段。它们照常入库，但不登记在 sources 里，报表与额度估算都看不到，也不同步给对端；
