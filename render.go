@@ -147,6 +147,9 @@ func renderCycle(c *CycleReport, sym string) []string {
 	used := "无读数"
 	if c.UsedPercent != nil {
 		used = fmt.Sprintf("已用 %g%%", *c.UsedPercent)
+		if c.UsedPercentAt != nil {
+			used += fmt.Sprintf("（读数 %s）", strings.Replace(sliceRunes(*c.UsedPercentAt, 5, 16), "T", " ", 1))
+		}
 	}
 	quota := ""
 	if q := c.QuotaEstimate; q != nil {

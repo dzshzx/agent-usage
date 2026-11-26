@@ -45,6 +45,7 @@ func rendCycle() *CycleReport {
 		WindowStartsAt: "2026-10-17T08:00:00+08:00",
 		ResetsAt:       "2026-10-24T08:00:00+08:00",
 		UsedPercent:    floatp(42.5),
+		UsedPercentAt:  strp("2026-10-20T14:35:07+08:00"),
 		Cost:           123.456,
 		QuotaEstimate:  &QuotaEstimate{Estimate: 290.5, Method: "delta", Readings: 9},
 		Models: []ModelRow{
@@ -72,6 +73,7 @@ func rendSampleResult() *Result {
 	c2.Inferred = true
 	c2.Active = false
 	c2.UsedPercent = nil
+	c2.UsedPercentAt = nil
 	c2.QuotaEstimate = nil
 	c2.Cost = 0
 	agents2 := []AgentRow{rendAgentRow(strp("reviewer"), strp("claude-sonnet-5"), strp("low"), 0)}
