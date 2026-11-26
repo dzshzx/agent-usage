@@ -39,7 +39,6 @@ func advisorText(a TimeAdvisor) string {
 // renderTime：time 的逐段汇总；没有段时不输出。
 func renderTime(segs []*TimeSegment) []string {
 	var lines []string
-	clock := func(iso string) string { return strings.Replace(sliceRunes(iso, 5, 16), "T", " ", 1) }
 	for i, s := range segs {
 		lines = append(lines, fmt.Sprintf("段 %d  %s → %s", i+1, clock(s.Start), clock(s.End)))
 		lines = append(lines, fmt.Sprintf("  提问到收工合计 %.1f 小时  主会话 %d 个（其中单段超过 30 分钟的等待 %.1f 小时，不计入下面的占比）",

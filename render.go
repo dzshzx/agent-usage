@@ -148,7 +148,7 @@ func renderCycle(c *CycleReport, sym string) []string {
 	if c.UsedPercent != nil {
 		used = fmt.Sprintf("已用 %g%%", *c.UsedPercent)
 		if c.UsedPercentAt != nil {
-			used += fmt.Sprintf("（读数 %s）", strings.Replace(sliceRunes(*c.UsedPercentAt, 5, 16), "T", " ", 1))
+			used += fmt.Sprintf("（读数 %s）", clock(*c.UsedPercentAt))
 		}
 	}
 	quota := ""
@@ -294,6 +294,9 @@ func renderDaily(days []*DayReport, sym string) []string {
 	return lines
 }
 
+// clock 把 RFC 3339 时刻写成文本输出用的「MM-DD HH:MM」。
+func clock(iso string) string { return strings.Replace(sliceRunes(iso, 5, 16), "T", " ", 1) }
+
 // sliceRunes 取 s 的第 a 到 b 个字符，s 不够长时截到末尾。
 func sliceRunes(s string, a, b int) string {
 	r := []rune(s)
@@ -314,7 +317,6 @@ func renderSegments(segs []*SegmentReport, sym string) []string {
 		return strconv.FormatFloat(*p*100, 'f', 0, 64) + "%"
 	}
 	for i, s := range segs {
-		clock := func(iso string) string { return strings.Replace(sliceRunes(iso, 5, 16), "T", " ", 1) }
 		lines = append(lines, fmt.Sprintf("  段 %d  %s → %s", i+1, clock(s.Start), clock(s.End)))
 		head := fmt.Sprintf("    %s%.2f  %d 次", sym, s.Cost, s.Requests)
 		if s.CostPerRequest != nil {
