@@ -56,8 +56,9 @@ Claude Code 各账号（主号 claude 与 claude-switch 管理的其他号）在
   --split TIME          segments、time 的切点，可重复；不给则整段一段
   --remote-command CMD  sync 在对端执行的 agent-usage（默认 ~/.local/bin/agent-usage）
   --config AGENT_USAGE_CONFIG
-                        同步配置（默认 ~/.config/agent-usage/config.json）：peers 是对端主机，
-                        auto_sync_minutes 是 status、history、daily、segments 顺带同步的最短间隔（0 关闭）
+                        配置（默认 ~/.config/agent-usage/config.json）：peers 是对端主机，
+                        auto_sync_minutes 是 status、history、daily、segments 顺带同步的最短间隔（0 关闭），
+                        archived 是不再使用的账号与归档日期
   --claude-home CLAUDE_HOME
   --claude-switch-dir CLAUDE_SWITCH_STATE_DIR
   --data-dir DATA_DIR

@@ -334,14 +334,24 @@ func execute(args *Args) (*Result, error) {
 		}
 	}
 	result := &Result{GeneratedAt: isoOf(now()), Sources: map[string]*SourceBlock{}}
-	names := args.Sources
-	if len(names) == 0 {
-		names = sourceNames()
+	cfg, err := loadConfig(args)
+	if err != nil {
+		return nil, err
 	}
-	for _, name := range names {
+	archived, err := archivedSince(args, cfg)
+	if err != nil {
+		return nil, err
+	}
+	if err := warnArchivedInUse(db, ctx, archived); err != nil {
+		return nil, err
+	}
+	for _, name := range reportNames(args, archived) {
 		block, err := sourceBlock(db, ctx, accountSource(name))
 		if err != nil {
 			return nil, err
+		}
+		if a, ok := archived[name]; ok {
+			block.Archived = a.date
 		}
 		result.Sources[name] = block
 	}

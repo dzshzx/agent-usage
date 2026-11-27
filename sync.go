@@ -68,8 +68,11 @@ var remoteRun = func(args *Args, host string, remoteArgs []string, session func(
 	return fmt.Errorf("对端 agent-usage %s 失败（%v）：%s", remoteArgs[0], waitErr, msg)
 }
 
-// syncConfig 是同步配置文件（Args.ConfigPath，JSON）。没有这个文件时没有对端，也不自动同步。
-type syncConfig struct {
+// config 是配置文件（Args.ConfigPath，JSON）。没有这个文件时没有对端、不自动同步，也没有归档账号。
+type config struct {
+	// Archived 见 archive.go
+	Archived map[string]string `json:"archived"`
+
 	// Peers 是 sync 不给主机时、以及自动同步时的对端（ssh 主机名）
 	Peers []string `json:"peers"`
 	// AutoSyncMinutes：status、history、daily、segments 运行时，距某个对端上次同步成功超过这么多分钟才顺带同步它；
@@ -79,8 +82,8 @@ type syncConfig struct {
 
 const defaultAutoSyncMinutes = 60
 
-func loadSyncConfig(args *Args) (*syncConfig, error) {
-	var cfg syncConfig
+func loadConfig(args *Args) (*config, error) {
+	var cfg config
 	return &cfg, readJSONFile(args.ConfigPath, &cfg)
 }
 
@@ -116,7 +119,7 @@ func syncHosts(ctx *Context, hosts []string, result *syncResult) {
 func runSync(args *Args) (*syncResult, error) {
 	hosts := args.Hosts
 	if len(hosts) == 0 {
-		cfg, err := loadSyncConfig(args)
+		cfg, err := loadConfig(args)
 		if err != nil {
 			return nil, err
 		}
@@ -138,7 +141,7 @@ func runSync(args *Args) (*syncResult, error) {
 // autoSync：报表命令顺带与配置里到期的对端同步；出错只记警告，报表照出。
 // 到期按上次尝试的时刻算，成败都算：对端离线时每个间隔最多试一次，不让每次查报表都等 ssh 超时。
 func autoSync(ctx *Context) error {
-	cfg, err := loadSyncConfig(ctx.Args)
+	cfg, err := loadConfig(ctx.Args)
 	if err != nil {
 		ctx.warn(fmt.Sprintf("自动同步：%s", err))
 		return nil

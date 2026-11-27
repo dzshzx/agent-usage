@@ -34,6 +34,7 @@ type Result struct {
 type SourceBlock struct {
 	Currency       string
 	Symbol         string
+	Archived       string // 归档账号的归档日期；在用的账号为空
 	Sync           *SyncStats
 	Prices         *PriceState
 	PricesTable    []PriceEntry
@@ -48,6 +49,9 @@ func (b *SourceBlock) MarshalJSON() ([]byte, error) {
 	m := newOrderedObject()
 	m.Set("currency", b.Currency)
 	m.Set("symbol", b.Symbol)
+	if b.Archived != "" {
+		m.Set("archived", b.Archived)
+	}
 	if b.Sync != nil {
 		m.Set("sync", b.Sync)
 	}
@@ -96,7 +100,11 @@ func renderDrops(drops []ReadingDrop) []string {
 // renderSource：一个来源的整段：各周期、近期参考总额度、按日趋势、价格表，末尾空一行隔开下一来源。
 func renderSource(name string, block *SourceBlock) []string {
 	sym := block.Symbol
-	lines := []string{fmt.Sprintf("━━ %s (%s)", name, block.Currency)}
+	title := fmt.Sprintf("━━ %s (%s)", name, block.Currency)
+	if block.Archived != "" {
+		title += "  已归档 " + block.Archived
+	}
+	lines := []string{title}
 	for _, c := range block.Cycles {
 		lines = append(lines, renderCycle(c, sym)...)
 	}
