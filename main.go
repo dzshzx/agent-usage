@@ -338,10 +338,7 @@ func execute(args *Args) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	archived, err := archivedSince(args, cfg)
-	if err != nil {
-		return nil, err
-	}
+	archived := cfg.Archived
 	if err := warnArchivedInUse(db, ctx, archived); err != nil {
 		return nil, err
 	}
@@ -350,9 +347,7 @@ func execute(args *Args) (*Result, error) {
 		if err != nil {
 			return nil, err
 		}
-		if a, ok := archived[name]; ok {
-			block.Archived = a.date
-		}
+		block.Archived = archived[name]
 		result.Sources[name] = block
 	}
 	result.Warnings = ctx.warnings()
